@@ -12,13 +12,14 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 
-import transit_types
-from constants import MAP_AS_ARR, ESC, SUB, RES
 from collections import OrderedDict
-from helpers import pairs
-import read_handlers as rh
-from rolling_cache import RollingCache, is_cacheable, is_cache_key
-from transit_types import true, false
+from transit import pyversion
+from transit import transit_types
+from transit.constants import MAP_AS_ARR, ESC, SUB, RES
+from transit.helpers import pairs
+from transit import read_handlers as rh
+from transit.rolling_cache import RollingCache, is_cacheable, is_cache_key
+from transit.transit_types import true, false
 
 
 class Tag(object):
@@ -83,8 +84,11 @@ class Decoder(object):
 
     def _decode(self, node, cache, as_map_key):
         tp = type(node)
-        if tp is unicode:
+        #print("type:", tp)
+        if tp in pyversion.string_types:
             return self.decode_string(node, cache, as_map_key)
+        elif tp is bytes:
+            return self.decode_string(node.decode("utf-8"), cache, as_map_key)
         elif tp is dict or tp is OrderedDict:
             return self.decode_hash(node, cache, as_map_key)
         elif tp is list:
@@ -92,6 +96,7 @@ class Decoder(object):
         elif tp is str:
             return self.decode_string(unicode(node, "utf-8"), cache, as_map_key)
         elif tp is bool:
+            #print("tp is boo!!!", node)
             return true if node else false
         return node
 
@@ -150,7 +155,8 @@ class Decoder(object):
                 h[key] = val
             return transit_types.frozendict(h)
         else:
-            key, value = hash.items()[0]
+            key = list(hash)[0]
+            value = hash[key]
             key = self._decode(key, cache, True)
             if isinstance(key, Tag):
                 return self.decode_tag(key.tag,
@@ -158,6 +164,7 @@ class Decoder(object):
         return transit_types.frozendict({key: self._decode(value, cache, False)})
 
     def parse_string(self, string, cache, as_map_key):
+        #print("parse str:", string, type(string))
         if string.startswith(ESC):
             m = string[1]
             if m in self.decoders:

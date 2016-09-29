@@ -85,6 +85,15 @@ transit.writer module
     :show-inheritance:
 
 
+transit.pyversionr module
+---------------------
+
+.. automodule:: transit.pyversion
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
 Module contents
 ---------------
 
